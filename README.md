@@ -10,7 +10,7 @@ Nozzle depends on the following external packages:
 - certifi
 
 ## Installation
-`pip install --upgrade pip setuptools`
+`pip install --upgrade pip setuptools`<br>
 `pip install steem-nozzle`
 
 ## Usage
