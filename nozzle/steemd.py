@@ -32,7 +32,7 @@ class SteemdClient(RPCClient):
                 previous_block_nr = blockid_to_blocknumber(block['block_id'])
 
             curr_time = monotonic()
-            sleep_time = max((block_interval - (curr_time - prev_time)), 0)
+            sleep_time = max((block_interval - (curr_time - prev_time)), 0.1)
             prev_time = curr_time
             sleep(sleep_time)
 

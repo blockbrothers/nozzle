@@ -10,11 +10,12 @@ Nozzle depends on the following external packages:
 - certifi
 
 ## Installation
-`pip install --upgrade pip setuptools`<br>
-`pip install steem-nozzle`
+```bash
+pip install --upgrade pip setuptools
+pip install steem-nozzle
+```
 
 ## Usage
-
 ```python
 from nozzle import Steem
 
@@ -31,7 +32,7 @@ print(steem.dynamic_global_properties)
 print(steem.call('get_accounts', ['blockbrothers']))
 ```
 
-`nozzle.Steem` (`nozzle.steemd.SteemClient`) is a subclass of `nozzle.client.RPCClient` with more high-level functions to interact with _steemd_ (more to be added in the future).
+`nozzle.Steem` (`nozzle.steemd.SteemdClient`) is a subclass of `nozzle.client.RPCClient` with more high-level functions to interact with _steemd_ (more to be added in the future).
 
 Use `RPCClient` as a low-level interface to _steemd_. You can make API requests by utilizing the `call()` method on an instance:
 ```python

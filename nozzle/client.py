@@ -99,7 +99,7 @@ class RPCClient(object):
         failover_limit = self.failover_limit if kwargs.pop('enable_failover', True) else 0
         failovers = 0
         response = None
-        while True:
+        while failovers <= failover_limit:
             try:
                 response = self._call(proc, *args, **kwargs)
             except ClosedPoolError:
@@ -108,17 +108,18 @@ class RPCClient(object):
             except MaxRetryError as e:
                 logger.exception(e.reason)
                 if failovers < failover_limit:
-                    failovers += 1
                     self.next_node()
-                else:
-                    break
             else:
                 if isinstance(response, HTTPResponse):
                     break
 
+            failovers += 1
+
         decoded_response = {}
         try:
             decoded_response = json.loads(response.data.decode('utf-8'))
+        except AttributeError:
+            logger.exception("Unable to get a response when calling remote procedure `{}`".format(proc))
         except (UnicodeError, json.JSONDecodeError):
             logger.exception("Unable to decode response.")
         else:
