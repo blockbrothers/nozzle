@@ -69,7 +69,18 @@ class RPCClient(object):
 
     @property
     def nodes(self):
-        return frozenset(self._nodes)
+        nodes = []
+        while True:
+            node = next(self._nodes)
+            if node in nodes:
+                break
+            nodes.append(node)
+
+        return frozenset(nodes)
+
+    @property
+    def current_node(self):
+        return self._connection.host
 
     def next_node(self):
         return self.connect(next(self._nodes))

@@ -3,6 +3,8 @@
 from setuptools import setup, find_packages
 import sys
 
+from nozzle import __version__ as version
+
 
 if sys.version_info < (3, 5):
     sys.exit('Only Python >=3.5 supported.')
@@ -10,7 +12,7 @@ if sys.version_info < (3, 5):
 
 setup(
     name='steem-nozzle',
-    version='0.1.0',
+    version=version,
     description='A Python library for the Steem Blockchain',
     long_description='',
     url='https://github.com/blockbrothers/nozzle',
