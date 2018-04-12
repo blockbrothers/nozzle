@@ -28,12 +28,17 @@ class SteemdClient(RPCClient):
         while True:
             t_start = monotonic()
             end_block_nr = self.last_irreversible_block_number if irreversible else self.head_block_number
+
             if end_block_nr == previous_block_nr:
                 same_block_count += 1
                 if same_block_count > node_hung_treshold:
                     raise HungNodeError
+            elif end_block_nr > previous_block_nr:
+                same_block_count = 0
+
             if max_blocks_catchup is not None:
                 previous_block_nr = max(previous_block_nr, (end_block_nr - max_blocks_catchup))
+
             for block in self.get_blocks(start_block_number=previous_block_nr + 1, end_block_number=end_block_nr):
                 yield block
                 if block is not None:

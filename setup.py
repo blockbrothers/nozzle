@@ -14,7 +14,7 @@ setup(
     name='steem-nozzle',
     version=version,
     description='A Python library for the Steem Blockchain',
-    long_description='',
+    long_description='A minimalistic Python client library for the Steem Blockchain',
     url='https://github.com/blockbrothers/nozzle',
     author='blockbrothers',
     author_email='info@blockbrothers.io',
