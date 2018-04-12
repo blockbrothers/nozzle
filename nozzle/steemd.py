@@ -1,7 +1,8 @@
 from time import monotonic, sleep
 
 from .client import RPCClient
-from .utils import blockid_to_blocknumber
+from .exceptions import HungNodeError
+from .utils import blockid_to_blocknumber, get_first_or_none
 
 
 class SteemdClient(RPCClient):
@@ -19,22 +20,30 @@ class SteemdClient(RPCClient):
         for block_number in range(start_block_number, end_block_number + 1):
             yield self.get_block(block_number)
 
-    def stream_blocks(self, irreversible=True, interval=None):
+    def stream_blocks(self, irreversible=True, interval=None, max_blocks_catchup=None, node_hung_treshold=9):
         previous_block_nr = self.last_irreversible_block_number if irreversible else self.head_block_number
         if interval is None:
             interval = self.block_interval
-        prev_time = monotonic()
+        same_block_count = 0
         while True:
+            t_start = monotonic()
             end_block_nr = self.last_irreversible_block_number if irreversible else self.head_block_number
+            if end_block_nr == previous_block_nr:
+                same_block_count += 1
+                if same_block_count > node_hung_treshold:
+                    raise HungNodeError
+            if max_blocks_catchup is not None:
+                previous_block_nr = max(previous_block_nr, (end_block_nr - max_blocks_catchup))
             for block in self.get_blocks(start_block_number=previous_block_nr + 1, end_block_number=end_block_nr):
                 yield block
                 if block is not None:
                     previous_block_nr = blockid_to_blocknumber(block['block_id'])
 
-            curr_time = monotonic()
-            sleep_time = max((interval - (curr_time - prev_time)), 0.1)
-            prev_time = curr_time
+            sleep_time = max((interval - (monotonic() - t_start)), 0.1)
             sleep(sleep_time)
+
+    def get_account(self, account):
+        return get_first_or_none(self.get_accounts(account))
 
     def get_accounts(self, accounts):
         if isinstance(accounts, str):
@@ -43,13 +52,16 @@ class SteemdClient(RPCClient):
         return self.call('get_accounts', accounts, api='database_api')
 
     def get_account_reputation(self, account):
-        result = self.call('get_account_reputations', account, 1, api='follow_api')
+        reputation = get_first_or_none(self.call('get_account_reputations', account, 1, api='follow_api'))
         try:
-            result = int(result[0]['reputation'])
-        except (TypeError, IndexError, KeyError):
-            result = None
+            reputation = int(reputation['reputation'])
+        except (TypeError, KeyError, ValueError):
+            reputation = None
 
-        return result
+        return reputation
+
+    def get_account_reputations(self, accounts):
+        return [self.get_account_reputation(account) for account in accounts]
 
     def get_witnesses_by_id(self, ids):
         if isinstance(ids, str):
