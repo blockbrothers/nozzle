@@ -20,7 +20,7 @@ class SteemdClient(RPCClient):
         for block_number in range(start_block_number, end_block_number + 1):
             yield self.get_block(block_number)
 
-    def stream_blocks(self, irreversible=True, interval=None, max_blocks_catchup=None, node_hung_treshold=9):
+    def stream_blocks(self, irreversible=True, interval=None, max_blocks_catchup=None, node_hung_treshold=None):
         previous_block_nr = self.last_irreversible_block_number if irreversible else self.head_block_number
         if interval is None:
             interval = self.block_interval
@@ -29,12 +29,13 @@ class SteemdClient(RPCClient):
             t_start = monotonic()
             end_block_nr = self.last_irreversible_block_number if irreversible else self.head_block_number
 
-            if end_block_nr == previous_block_nr:
-                same_block_count += 1
-                if same_block_count > node_hung_treshold:
-                    raise HungNodeError
-            elif end_block_nr > previous_block_nr:
-                same_block_count = 0
+            if node_hung_treshold is not None:
+                if end_block_nr == previous_block_nr:
+                    same_block_count += 1
+                    if same_block_count > node_hung_treshold:
+                        raise HungNodeError
+                elif end_block_nr > previous_block_nr:
+                    same_block_count = 0
 
             if max_blocks_catchup is not None:
                 previous_block_nr = max(previous_block_nr, (end_block_nr - max_blocks_catchup))
