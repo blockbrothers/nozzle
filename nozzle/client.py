@@ -149,18 +149,13 @@ class RPCClient(object):
         body = {
             'jsonrpc': '2.0',
             'id': kwargs.pop('call_id', 0),
-            'method': 'call',
         }
         api = kwargs.pop('api', None)
-        if kwargs:
-            body['params'] = [api, proc, kwargs]
-        elif api:
-            body['params'] = [api, proc, args]
+        body['params'] = kwargs if kwargs else args
+        if api:
+            body['method'] = "{api}.{function}".format(api=api, function=proc)
         else:
-            body.update({
-                'method': proc,
-                'params': args,
-            })
+            body['method'] = proc
 
         body = json.dumps(body, ensure_ascii=False, default=str, separators=(',', ':')).encode('utf-8')
         return self._connection.request('POST', '/', body=body)
